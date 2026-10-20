@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#d70d1f">
+  <title>ROTHENBERGER | Orçamentos</title>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      --red:#df1329;
+      --red-dark:#b90c1e;
+      --black:#101217;
+      --bg:#f3f5f7;
+      --card:#ffffff;
+      --line:#e4e8ef;
+      --muted:#6d7481;
+      --text:#1a2230;
+      --soft:#f7f8fa;
+      --soft-red:#fff2f4;
+      --yellow:#ffd23f;
+      --radius:18px;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); }
+    button, input, select, textarea { font:inherit; }
+    button { cursor:pointer; }
+    img { max-width:100%; display:block; }
+    .header {
+      background:linear-gradient(130deg, #fff 0%, #fff 58%, #f8d4d9 58%, #df1329 100%);
+      border-bottom:3px solid var(--red);
+      padding:5px 14px;
+      position:sticky; top:0; z-index:30;
+      box-shadow:0 10px 24px rgba(13,18,24,.08);
+    }
+    .header-wrap { max-width:1450px; margin:auto; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:nowrap; }
+    .brand-row { display:flex; align-items:center; gap:12px; min-width:0; }
+    .brand-logo { width:158px; max-width:27vw; height:auto; flex-shrink:0; }
+    .header-title { font-weight:900; font-size:clamp(13px,1.3vw,18px); letter-spacing:.01em; }
+    .header-sub { color:#455064; font-size:11px; margin-top:1px; }
+    .fair-badges { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; align-items:center; }
+    .badge { background:#111; color:#fff; border-radius:999px; padding:3px 6px; font-size:9px; font-weight:800; }
+    .badge.red { background:var(--red); }
+    .wrap { max-width:1450px; margin:auto; padding:18px 14px 56px; }
+    .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+    .tab { border:1px solid var(--line); background:#fff; padding:11px 14px; border-radius:12px; font-weight:800; color:#394253; }
+    .tab.active { background:var(--black); border-color:var(--black); color:#fff; }
+    .view.hidden { display:none; }
+    .grid { display:grid; grid-template-columns:minmax(310px, 1.02fr) minmax(390px, .98fr); gap:18px; align-items:start; }
+    .panel { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 10px 28px rgba(24,39,75,.05); padding:18px; }
+    .panel + .panel { margin-top:16px; }
+    h1,h2,h3,p { margin:0; }
+    h2 { font-size:18px; margin-bottom:12px; }
+    h3 { font-size:15px; margin-bottom:8px; }
+    .muted { color:var(--muted); font-size:12px; line-height:1.5; }
+    .top-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .btn { border:0; border-radius:12px; padding:11px 14px; font-weight:800; background:var(--red); color:#fff; }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+    .btn.dark { background:var(--black); }
+    .btn.soft { background:#f2f4f7; color:#293140; }
+    .btn.outline { background:#fff; color:#2b3442; border:1px solid #d7dde6; }
+    .btn.small { padding:8px 10px; border-radius:10px; font-size:12px; }
+    .count { background:var(--yellow); color:#111; padding:2px 7px; border-radius:999px; margin-left:5px; font-size:12px; }
+    .section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .field { display:grid; gap:6px; margin-bottom:12px; }
+    .field label { font-size:12px; font-weight:800; color:#41495a; }
+    .field input, .field select, .field textarea { width:100%; min-height:42px; border:1px solid #d5dce6; background:#fff; color:var(--text); border-radius:12px; padding:10px 12px; }
+    .field textarea { min-height:70px; resize:vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus { outline:2px solid rgba(223,19,41,.16); border-color:var(--red); }
+    .columns { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .quote-hero { background:linear-gradient(135deg,#111 0,#191c24 100%); color:#fff; border:0; overflow:hidden; }
+    .quote-hero .panel-top { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+    .quote-hero .label { font-size:11px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; opacity:.75; }
+    .quote-total { font-size:clamp(28px,4vw,42px); font-weight:1000; color:#fff; margin:6px 0 0; line-height:1.1; }
+    .summary-strip { margin-top:16px; padding:12px 14px; background:rgba(255,255,255,.08); border-radius:14px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .summary-strip b { display:block; font-size:12px; opacity:.72; margin-bottom:4px; }
+    .summary-strip span { font-weight:900; font-size:16px; }
+    .statusbox { background:#edf8f1; border:1px solid #d5ebdb; color:#24583a; padding:10px 12px; border-radius:12px; font-size:12px; margin-top:12px; }
+    .warning { background:#fff8e6; border:1px solid #f2dfa6; color:#7a5b11; padding:12px; border-radius:12px; font-size:12px; line-height:1.55; }
+    .item-table { width:100%; border-collapse:separate; border-spacing:0 10px; }
+    .item-table th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#738092; padding:0 8px 4px; }
+    .item-row td { background:#fff; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:11px 8px; vertical-align:top; }
+    .item-row td:first-child { border-left:1px solid var(--line); border-top-left-radius:14px; border-bottom-left-radius:14px; }
+    .item-row td:last-child { border-right:1px solid var(--line); border-top-right-radius:14px; border-bottom-right-radius:14px; }
+    .item-code { font-size:11px; font-weight:900; color:var(--red); }
+    .item-name { font-size:14px; font-weight:900; margin-top:2px; line-height:1.35; }
+    .item-tax { margin-top:4px; color:#6e7785; font-size:11px; line-height:1.45; }
+    .money { font-variant-numeric:tabular-nums; }
+    .qty-input, .price-input { width:100%; border:1px solid #d8dde5; border-radius:10px; padding:8px 10px; background:#fff; }
+    .quote-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .totals { display:grid; gap:8px; margin-top:14px; }
+    .totals .line { display:flex; justify-content:space-between; gap:12px; padding:4px 0; }
+    .totals .grand { padding-top:8px; margin-top:4px; border-top:1px solid rgba(255,255,255,.12); font-size:18px; font-weight:900; }
+    .catalog-grid { display:grid; gap:10px; }
+    .catalog-item { border:1px solid var(--line); border-radius:14px; padding:13px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:start; background:#fff; }
+    .catalog-item:hover { box-shadow:0 8px 18px rgba(18,24,40,.06); transform:translateY(-1px); transition:.15s ease; }
+    .catalog-price { font-size:24px; font-weight:1000; color:#16824b; line-height:1; white-space:nowrap; text-align:right; }
+    .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+    .chip { background:#f3f5f7; color:#4e5564; font-size:10px; font-weight:900; border-radius:999px; padding:5px 8px; }
+    .search-grid { display:grid; grid-template-columns:1.25fr .75fr; gap:12px; margin-bottom:12px; }
+    .sticky { position:static; }
+    .saved-card { border-bottom:1px solid var(--line); padding:14px 0; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    .saved-card:last-child { border-bottom:0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; line-height:1.5; word-break:break-word; }
+    .code-box { background:#111; color:#fff; padding:12px; border-radius:14px; }
+    .quote-restore-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .kv { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .kv .card { background:var(--soft); border-radius:14px; padding:12px; }
+    .kv .k { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#6c7482; font-weight:900; }
+    .kv .v { font-size:16px; font-weight:900; margin-top:4px; }
+    .empty { padding:16px; background:var(--soft); border-radius:14px; color:#667080; font-size:13px; }
+    .footer { text-align:center; color:#7a818d; font-size:11px; margin-top:18px; }
+    .client-card { background:linear-gradient(180deg,#fff 0,#f9fafb 100%); }
+    .extra-row {display:grid;grid-template-columns:120px 1fr 36px;gap:8px;align-items:end;margin:8px 0} .extra-row input,.extra-row select{width:100%;min-height:39px;border:1px solid #d5dce6;border-radius:9px;padding:7px} .extras-zone{border:1px dashed #d4d8df;border-radius:12px;padding:12px;margin-top:9px;background:#fafafb} .hidden-extra{display:none} .client-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+
+    .add-product-btn { background:#222936; color:white; min-width:114px; transition:background .2s, transform .2s; }
+    .add-product-btn:active { transform:scale(.96); }
+    .catalog-item.just-added { border-color:#20a05e; box-shadow:0 0 0 2px rgba(32,160,94,.14); animation:addedFlash .7s ease; }
+    .catalog-item.just-added .add-product-btn { background:#275442; }
+    @keyframes addedFlash { 0% {transform:scale(1)} 40% {transform:scale(1.012)} 100% {transform:scale(1)} }
+    .add-toast { position:fixed; bottom:20px; left:50%; transform:translate(-50%,15px); opacity:0; pointer-events:none; background:#202936; color:#fff; border-radius:999px; padding:11px 19px; font-size:13px; font-weight:800; box-shadow:0 10px 25px #0003; z-index:100; transition:opacity .2s,transform .2s; }
+    .add-toast.visible { opacity:1; transform:translate(-50%,0); }
+    #conditionsPanel { scroll-margin-top:95px; }
+    .jump-conditions { position:fixed; left:16px; bottom:calc(18px + env(safe-area-inset-bottom, 0px)); z-index:80; display:inline-flex; align-items:center; justify-content:center; gap:7px; margin:0; padding:12px 16px; border-radius:999px; background:#222936; color:#fff; border:1px solid #384253; box-shadow:0 8px 24px #10131b45; font-weight:800; transition:background .18s,transform .18s; }
+    .jump-conditions:active { transform:scale(.97); }
+    .jump-conditions.is-up { background:#f5f6f8; color:#222936; border-color:#cbd1d9; }
+    .jump-conditions.is-hidden { display:none; }
+    @media(max-width:680px) { .jump-conditions { left:12px; bottom:calc(14px + env(safe-area-inset-bottom, 0px)); padding:11px 14px; font-size:12px; } }
+    .jump-conditions:focus-visible { outline:3px solid #df1329; outline-offset:2px; }
+    .print-sheet { display:none; }
+    @media (max-width: 1080px) {
+      .grid { grid-template-columns:1fr; }
+      .grid { display:flex; flex-direction:column; }
+      .grid > div:first-child, .grid > div:last-child { display:contents; }
+      .grid > div:first-child > .panel { order:1; }
+      #conditionsPanel { order:2; }
+      .client-card { order:3; }
+      .quote-hero { order:4; }
+      #itemsPanel { order:5; }
+      #codePanel { order:6; }
+      .grid .panel { width:100%; margin-top:0; }
+      .grid .panel + .panel { margin-top:0; }
+      .header-sub { display:none; }
+      .fair-badges .badge:not(.red) { display:none; }
+      .summary-strip { grid-template-columns:1fr; }
+      .kv { grid-template-columns:1fr; }
+    }
+    @media (max-width: 680px) {
+      .header { padding:5px 9px; }
+      .brand-logo { width:130px; }
+      .header-title { font-size:13px; }
+      .badge { font-size:10px; padding:5px 7px; }
+      .wrap { padding:12px 10px 42px; }
+      .columns, .search-grid { grid-template-columns:1fr; }
+      .catalog-item { grid-template-columns:1fr; }
+      .catalog-price { text-align:left; }
+      .item-table, .item-table thead, .item-table tbody, .item-table tr, .item-table td { display:block; width:100%; }
+      .item-table thead { display:none; }
+      .item-row td { border-radius:0 !important; border-left:1px solid var(--line); border-right:1px solid var(--line); padding:10px; }
+      .item-row td:first-child { border-top-left-radius:14px !important; border-top-right-radius:14px !important; }
+      .item-row td:last-child { border-bottom-left-radius:14px !important; border-bottom-right-radius:14px !important; }
+      .item-row td::before { content:attr(data-label); display:block; font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#808897; font-weight:900; margin-bottom:4px; }
+    }
+    @media print {
+      body { background:#fff; }
+      .header, .tabs, .view, .jump-conditions { display:none !important; }
+      .print-sheet { display:block; padding:14mm; }
+      .print-header { display:flex; align-items:center; justify-content:space-between; gap:20px; border-bottom:4px solid var(--red); padding-bottom:10px; }
+      .print-header img { width:190px; height:auto; object-fit:contain; }
+      .print-kv { margin-top:14px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+      .print-box { background:#f7f7f8; border:1px solid #e0e0e0; border-radius:10px; padding:10px; }
+      .p-table { width:100%; border-collapse:collapse; margin-top:16px; }
+      .p-table th, .p-table td { border-bottom:1px solid #d8d8d8; padding:8px 6px; text-align:left; vertical-align:top; }
+      .p-table th:last-child, .p-table td:last-child { text-align:right; }
+      .p-total { margin-top:16px; margin-left:auto; max-width:360px; }
+      .p-total .line { display:flex; justify-content:space-between; margin:6px 0; }
+      .p-grand { font-size:24px; font-weight:900; text-align:right; margin-top:12px; }
+      .p-code { margin-top:18px; padding:10px; border:1px dashed #999; border-radius:8px; font-family:ui-monospace, monospace; font-size:10px; line-height:1.5; word-break:break-word; }
+      .p-client { margin-top:18px; }
+      .p-client-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+      .p-foot { margin-top:18px; font-size:11px; color:#444; line-height:1.5; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-wrap">
+      <div class="brand-row">
+        <img class="brand-logo" src="data:image/png;base64,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" alt="Rothenberger">
+        <div>
+          <div class="header-title">Orçamentos e simulações comerciais</div>
+          <div class="header-sub">Foco nos preços dos itens, condições da FENASAN, impostos disponíveis e recuperação rápida do orçamento</div>
+        </div>
+      </div>
+      <div class="fair-badges">
+        <span class="badge red">FENASAN 2026</span>
+        <span class="badge">12x sem juros</span>
+        <span class="badge">5% até 4x</span>
+        <span class="badge">8% à vista</span>
+        <span class="badge">USE.CORP até 60x</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="tabs">
+      <button class="tab active" data-tab="quote">Orçamento atual <span id="itemCount" class="count">0</span></button>
+      <button class="tab" data-tab="saved">Orçamentos salvos</button>
+      <button class="tab" data-tab="catalog">Catálogo</button>
+      <button class="tab" data-tab="backup">Código / Backup</button>
+    </nav>
+
+    <section id="view-quote" class="view">
+      <div class="grid">
+        <div>
+          <section class="panel">
+            <div class="section-head">
+              <h2>Escolher produtos</h2>
+              <button id="btnNewProduct" class="btn soft small">+ Produto manual</button>
+            </div>
+            <div class="search-grid">
+              <div class="field">
+                <label>Buscar por código, nome ou modelo</label>
+                <input id="searchInput" placeholder="Ex.: SHD315, ROPOWER, ROFUSE...">
+              </div>
+              <div class="field">
+                <label>Categoria</label>
+                <select id="categorySelect"></select>
+              </div>
+            </div>
+            <div id="catalogList" class="catalog-grid"></div>
+          </section>
+
+
+        </div>
+
+        <div class="sticky">
+          <section class="panel client-card">
+            <div class="client-title">
+              <h2>Informações do cliente e observações</h2>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;"><button id="btnClearAll" class="btn outline small">Limpar tudo</button><button id="btnNewQuote" class="btn soft small">+ Novo orçamento</button></div>
+            </div>
+            <div class="columns">
+              <div class="field">
+                <label>Cliente / empresa</label>
+                <input id="clientInput" placeholder="Razão social ou cliente">
+              </div>
+              <div class="field">
+                <label>Referência / nº</label>
+                <input id="refInput" placeholder="Ex.: FEN-001">
+              </div>
+              <div class="field">
+                <label>Data da proposta</label>
+                <input id="dateInput" type="date">
+              </div>
+              <div class="field">
+                <label>Responsável</label>
+                <input id="sellerInput" placeholder="Representante">
+              </div>
+            </div>
+            <div class="field">
+              <label>Observações comerciais</label>
+              <textarea id="notesInput" placeholder="Prazo, frete, condições específicas, observações do cliente..."></textarea>
+            </div>
+            <div class="muted">Essas informações aparecem no final do PDF, abaixo dos itens e totais, como você pediu.</div>
+          </section>
+
+          <section class="panel quote-hero">
+            <div class="panel-top">
+              <div>
+                <div class="label">Total estimado do orçamento</div>
+                <div id="grandTotal" class="quote-total money">R$ 0,00</div>
+              </div>
+              <div style="min-width:240px;">
+                <div class="label">Ações rápidas</div>
+                <div class="quote-actions">
+                  <button id="btnSaveQuote" class="btn">Salvar</button>
+                  <button id="btnPdf" class="btn dark">Baixar PDF</button>
+                  <button id="btnCopySummary" class="btn outline">Copiar resumo</button>
+                  <button id="btnCopyCode" class="btn outline">Copiar código</button>
+                </div>
+              </div>
+            </div>
+            <div class="summary-strip">
+              <div>
+                <b>Subtotal</b>
+                <span id="subtotalValue" class="money">R$ 0,00</span>
+              </div>
+              <div id="officialCard">
+                <b>Desconto oficial</b>
+                <span id="officialValue" class="money">− R$ 0,00</span>
+              </div>
+              <div id="extraCard">
+                <b>Descontos extras</b>
+                <span id="extraValueLabel" class="money">− R$ 0,00</span>
+              </div>
+            </div>
+            <div id="saveStatus" class="statusbox">Rascunho salvo automaticamente neste dispositivo.</div>
+          </section>
+
+          <section class="panel" id="conditionsPanel">
+            <h2>Condições e descontos</h2>
+            <div class="field">
+              <label>Condição oficial</label>
+              <select id="conditionSelect">
+                <option value="none">Sem condição oficial (preço informado)</option>
+                <option value="12x">12x sem juros — sem desconto</option>
+                <option value="5">5% OFF — até 4x</option>
+                <option value="8">8% OFF — à vista</option>
+                <option value="60x">USE.CORP — até 60x</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Parcelas para simulação</label>
+              <input id="partsInput" type="number" min="1" max="60" step="1" value="12">
+            </div>
+            <button id="toggleExtras" class="btn outline small" type="button" aria-expanded="false">Extras <span id="extrasIndicator">+</span></button>
+            <div id="extrasZone" class="extras-zone hidden-extra">
+              <div class="muted">Descontos manuais sucessivos. Adicione somente quando necessário.</div>
+              <div id="extraRows"></div>
+              <button id="addExtra" class="btn soft small" type="button">+ Adicionar desconto</button>
+              <div class="field" style="margin-top:12px"><label>Motivo / autorização (opcional)</label><input id="discountReasonInput" placeholder="Ex.: aprovação gerencial"></div>
+            </div>
+            <div id="installmentHint" class="warning"></div>
+          </section>
+
+          <section class="panel" id="itemsPanel">
+            <div class="section-head">
+              <h2>Itens do orçamento</h2>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="btnClearItems" class="btn soft small">Limpar itens</button>
+              </div>
+            </div>
+            <div id="itemsArea"></div>
+          </section>
+
+          <section class="panel" id="codePanel">
+            <h2>Código do orçamento</h2>
+            <div class="muted">Esse código guarda itens, quantidades, descontos, preços e dados do orçamento. Você pode copiá-lo do PDF ou de um texto e colar depois para recriar tudo.</div>
+            <div id="quoteCodeBox" class="code-box mono" style="margin-top:10px;">ORC1:VAZIO</div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-saved" class="view hidden">
+      <section class="panel">
+        <div class="section-head">
+          <h2>Orçamentos salvos</h2>
+          <div class="muted"><span id="savedCount">0</span> salvos</div>
+        </div>
+        <div class="field">
+          <label>Buscar</label>
+          <input id="savedSearchInput" placeholder="Cliente, referência ou item...">
+        </div>
+        <div id="savedList"></div>
+      </section>
+    </section>
+
+    <section id="view-catalog" class="view hidden">
+      <section class="panel">
+        <div class="section-head">
+          <h2>Catálogo</h2>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="btnCatalogAdd" class="btn">+ Novo produto</button>
+            <button id="btnCatalogReset" class="btn soft">Restaurar catálogo base</button>
+          </div>
+        </div>
+        <div class="muted" style="margin-bottom:12px;">Todos os preços cadastrados estão sendo tratados como atuais para aplicação dos descontos, conforme sua orientação.</div>
+        <div id="catalogManageList"></div>
+      </section>
+    </section>
+
+    <section id="view-backup" class="view hidden">
+      <div class="grid">
+        <div>
+          <section class="panel">
+            <h2>Restaurar orçamento por código</h2>
+            <div class="field">
+              <label>Cole o código do orçamento ou um texto/PDF copiado contendo esse código</label>
+              <textarea id="restoreInput" placeholder="Cole aqui algo como ORC1:...."></textarea>
+            </div>
+            <div class="quote-restore-actions">
+              <button id="btnRestoreCode" class="btn">Restaurar orçamento</button>
+              <button id="btnPasteRestore" class="btn soft">Colar da área de transferência</button>
+            </div>
+            <div class="warning" style="margin-top:12px;">Se o texto tiver o código em qualquer trecho, o app tenta localizar automaticamente e reconstruir o orçamento.</div>
+          </section>
+
+          <section class="panel">
+            <h2>Backup completo</h2>
+            <div class="top-actions">
+              <button id="btnExportJson" class="btn">Exportar JSON</button>
+              <button id="btnImportJson" class="btn soft">Importar JSON</button>
+              <input id="jsonFileInput" type="file" accept="application/json" style="display:none;">
+            </div>
+            <div class="muted" style="margin-top:12px;">Use isso quando quiser transferir todos os orçamentos salvos e o catálogo para outro dispositivo.</div>
+          </section>
+        </div>
+        <div>
+          <section class="panel">
+            <h2>Resumo do orçamento atual</h2>
+            <div class="kv">
+              <div class="card">
+                <div class="k">Itens</div>
+                <div id="statItems" class="v">0</div>
+              </div>
+              <div class="card">
+                <div class="k">Total</div>
+                <div id="statTotal" class="v">R$ 0,00</div>
+              </div>
+              <div class="card">
+                <div class="k">Cliente</div>
+                <div id="statClient" class="v">—</div>
+              </div>
+            </div>
+            <div class="code-box mono" style="margin-top:16px;">
+              <b>Como funciona a recuperação:</b><br>
+              1. Gere/copie o código do orçamento.<br>
+              2. Ele aparece no PDF e no resumo copiado.<br>
+              3. Depois, basta colar esse código aqui para recriar os itens, quantidades, preços e descontos.
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">Aplicativo local para simulação comercial · Confira disponibilidade, impostos, ST, frete e aprovação antes da proposta final.</div>
+  </main>
+
+  <div id="addToast" class="add-toast" role="status" aria-live="polite"></div>
+  <button id="btnJumpConditions" type="button" class="jump-conditions" aria-controls="conditionsPanel" aria-label="Ir para condições e descontos">Condições ↓</button>
+  <div id="printSheet" class="print-sheet"></div>
+
+  <script>
+    'use strict';
+    const LOGO_DATA = "data:image/png;base64,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";
+    const LOGO_ASPECT = 0.16011236;
+    const STORAGE_KEY = 'rothenberger_fenasan_quotes_v2';
+    const BASE_CATALOG = [{"id": "SHD160.W12", "code": "SHD160.W12", "name": "ROWELD STANDARD — Casquilho sanduíche 63/160 mm", "price": 32599, "category": "Termofusão SHD", "source": "Lançamento SHD — imagem enviada pelo usuário", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "SHD250.W20", "code": "SHD250.W20", "name": "ROWELD STANDARD — Casquilho sanduíche 63/250 mm", "price": 47299, "category": "Termofusão SHD", "source": "Lançamento SHD — imagem enviada pelo usuário", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "SHD315.W18", "code": "SHD315.W18", "name": "ROWELD STANDARD — Casquilho sanduíche 90/315 mm", "price": 52999, "category": "Termofusão SHD", "source": "Lançamento SHD — imagem enviada pelo usuário", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "SHD355.W15", "code": "SHD355.W15", "name": "ROWELD STANDARD — Casquilho sanduíche 90/355 mm", "price": 73599, "category": "Termofusão SHD", "source": "Lançamento SHD — imagem enviada pelo usuário", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "SHD500.W08", "code": "SHD500.W08", "name": "ROWELD STANDARD — Casquilho sanduíche 280/500 mm", "price": 115499, "category": "Termofusão SHD", "source": "Lançamento SHD — imagem enviada pelo usuário", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "SHD630.W14", "code": "SHD630.W14", "name": "ROWELD STANDARD — Casquilho sanduíche 315/630 mm", "price": 119999, "category": "Termofusão SHD", "source": "Lançamento SHD — imagem enviada pelo usuário", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "1789000002", "code": "1789000002", "name": "ROPOWER 900 — Rosqueadeira 1/2–2 pol., 220 V", "price": 3990, "category": "Rosqueadeiras", "source": "Tabela específica ROPOWER — catálogo base", "accessory": false, "ncm": "8459.70.00", "icms": "18%", "ipi": "0%"}, {"id": "1789000004", "code": "1789000004", "name": "ROPOWER 1100 — Rosqueadeira 1/2–4 pol., 220 V", "price": 9590, "category": "Rosqueadeiras", "source": "Tabela específica ROPOWER — catálogo base", "accessory": false, "ncm": "8459.70.00", "icms": "18%", "ipi": "0%"}, {"id": "DX298M", "code": "DX298M", "name": "BAK ExOn 1A — Extrusora manual", "price": 35990, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "8477.20.10", "icms": "", "ipi": "0%"}, {"id": "DX297DM", "code": "DX297DM", "name": "BAK ExOn 1 — Extrusora manual", "price": 48990, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "8477.20.10", "icms": "", "ipi": "0%"}, {"id": "DX306M", "code": "DX306M", "name": "BAK ExOn 3A — Extrusora manual", "price": 39990, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "8477.20.10", "icms": "", "ipi": "0%"}, {"id": "DX434M", "code": "DX434M", "name": "BAK ExOn C3 — Extrusora manual", "price": 89990, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "8477.20.10", "icms": "", "ipi": "0%"}, {"id": "DX283M", "code": "DX283M", "name": "BAK Micro CPL — Extrusora manual", "price": 60990, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "8477.20.10", "icms": "", "ipi": "0%"}, {"id": "6600159", "code": "6600159", "name": "BAK RiOn — Soprador ar quente", "price": 4799, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "6600161", "code": "6600161", "name": "BAK RiOn Digital — Soprador ar quente", "price": 6799, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "6600434", "code": "6600434", "name": "BAK LiiOn — Soprador a bateria", "price": 22999, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "", "icms": "", "ipi": ""}, {"id": "6600502", "code": "6600502", "name": "BAK ComOn 3 — Equipamento de soldagem", "price": 99968, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "", "icms": "", "ipi": ""}, {"id": "6600536", "code": "6600536", "name": "BAK ProtOn WEDGE — Cunha", "price": 87697.97, "category": "BAK", "source": "Tabela BAK jul–set/2026", "accessory": false, "ncm": "", "icms": "", "ipi": ""}, {"id": "558844", "code": "558844", "name": "ROWELD P110 B — Termofusão", "price": 39990, "category": "ROWELD", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "55250", "code": "55250", "name": "ROWELD P160 B — Termofusão", "price": 79990, "category": "ROWELD", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "55160", "code": "55160", "name": "ROWELD P250 B — Termofusão", "price": 99990, "category": "ROWELD", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "55455N", "code": "55455N", "name": "ROWELD P355 B — Termofusão", "price": 119990, "category": "ROWELD", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "53400", "code": "53400", "name": "ROWELD P500 B — Termofusão", "price": 289900, "category": "ROWELD", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "53300", "code": "53300", "name": "ROWELD P630 B — Termofusão", "price": 309990, "category": "ROWELD", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "1000000999", "code": "1000000999", "name": "ROFUSE TURBO 400 — Eletrofusão", "price": 18990, "category": "Eletrofusão", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "1000001000", "code": "1000001000", "name": "ROFUSE TURBO 1200 — Eletrofusão", "price": 23999, "category": "Eletrofusão", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "1000004403", "code": "1000004403", "name": "ROFUSE TURBO S — Eletrofusão", "price": 14999, "category": "Eletrofusão", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": false, "ncm": "8515.80.90", "icms": "", "ipi": "0%"}, {"id": "1500004347", "code": "1500004347", "name": "ROSCRAPER 315 — Raspador", "price": 7999, "category": "Acessórios", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": true, "ncm": "", "icms": "", "ipi": ""}, {"id": "1500004348", "code": "1500004348", "name": "ROSCRAPER 400 — Raspador", "price": 7999, "category": "Acessórios", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": true, "ncm": "", "icms": "", "ipi": ""}, {"id": "1500004346", "code": "1500004346", "name": "ROSCRAPER 75 — Raspador", "price": 6999, "category": "Acessórios", "source": "Tabela termo/eletrofusão jul–set/2026", "accessory": true, "ncm": "", "icms": "", "ipi": ""}, {"id": "1789080000", "code": "1789080000", "name": "Cossinete ROPOWER 1100 — 1/2 a 3/4 BSPT", "price": 159.9, "category": "Acessórios", "source": "Tabela específica ROPOWER — catálogo base", "accessory": true, "ncm": "8207.40.20", "icms": "18%", "ipi": "5,2%"}, {"id": "1789080001", "code": "1789080001", "name": "Cossinete ROPOWER 1100 — 1 a 2 BSPT", "price": 159.9, "category": "Acessórios", "source": "Tabela específica ROPOWER — catálogo base", "accessory": true, "ncm": "8207.40.20", "icms": "18%", "ipi": "5,2%"}, {"id": "1789080009", "code": "1789080009", "name": "Cossinete ROPOWER 1100 — 2 1/2 a 4 BSPT", "price": 199.9, "category": "Acessórios", "source": "Tabela específica ROPOWER — catálogo base", "accessory": true, "ncm": "8207.40.20", "icms": "18%", "ipi": "5,2%"}, {"id": "1789080606", "code": "1789080606", "name": "ROPOWER — Roda cortadora", "price": 53.9, "category": "Acessórios", "source": "Tabela específica ROPOWER — catálogo base", "accessory": true, "ncm": "8466.93.40", "icms": "18%", "ipi": "0%"}, {"id": "1789080100", "code": "1789080100", "name": "ROPOWER — Pedal acionamento", "price": 529.9, "category": "Acessórios", "source": "Tabela específica ROPOWER — catálogo base", "accessory": true, "ncm": "8466.93.40", "icms": "18%", "ipi": "0%"}];
+    const CONDITION_LABELS = {
+      none:'Sem condição oficial',
+      '12x':'12x sem juros',
+      '5':'5% OFF em até 4x',
+      '8':'8% OFF à vista',
+      '60x':'USE.CORP até 60x'
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const money = new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL'});
+    const formatMoney = (v) => money.format(Number(v||0));
+    const clone = (v) => JSON.parse(JSON.stringify(v));
+    const uid = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+    const today = () => new Date().toISOString().slice(0,10);
+    const esc = (s='') => String(s)
+      .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+      .replaceAll('"','&quot;').replaceAll("'", '&#39;');
+    const q = (sel, root=document) => root.querySelector(sel);
+    const qa = (sel, root=document) => [...root.querySelectorAll(sel)];
+
+    function baseDraft() {
+      return {
+        id: uid(),
+        client:'', ref:'', date: today(), seller:'William Vidal', notes:'',
+        condition:'none', parts:12, extras:[], extra1:0, extra2:0, extraValue:0, discountReason:'',
+        items:[], savedAt:null
+      };
+    }
+
+    function normalizeProduct(p) {
+      return {
+        id: p.id || uid(),
+        code: p.code || '',
+        name: p.name || '',
+        price: Number(p.price||0),
+        category: p.category || 'Outros',
+        source: p.source || 'Incluído manualmente',
+        accessory: !!p.accessory,
+        ncm: p.ncm || '', icms: p.icms || '', ipi: p.ipi || ''
+      };
+    }
+
+    function getExtras(state) {
+      if (Array.isArray(state.extras)) return state.extras.filter(x=>x && Number(x.value)>0).map(x=>({type:x.type==='value'?'value':'percent',value:Math.max(0,Number(x.value)||0)}));
+      const converted=[];
+      if(Number(state.extra1)>0) converted.push({type:'percent',value:Number(state.extra1)});
+      if(Number(state.extra2)>0) converted.push({type:'percent',value:Number(state.extra2)});
+      if(Number(state.extraValue)>0) converted.push({type:'value',value:Number(state.extraValue)});
+      return converted;
+    }
+    function extraDescription(state) { return getExtras(state).map(x=>x.type==='percent'?`${x.value}%`:formatMoney(x.value)).join(' + '); }
+    function isRosqueadeira(item) { return item.category==='Rosqueadeiras' || /^(1789000002|1789000004)$/.test(String(item.code||'')) || /^ROPOWER (900|1100)/i.test(String(item.name||'')); }
+    function renderExtraRows() {
+      if (!Array.isArray(draft.extras)) draft.extras=getExtras(draft);
+      $('extraRows').innerHTML=draft.extras.map((x,i)=>`<div class="extra-row"><div class="field" style="margin:0"><label>Tipo</label><select data-extratype="${i}"><option value="percent" ${x.type==='percent'?'selected':''}>% adicional</option><option value="value" ${x.type==='value'?'selected':''}>Valor (R$)</option></select></div><div class="field" style="margin:0"><label>Desconto</label><input data-extraval="${i}" type="number" min="0" max="${x.type==='percent'?100:999999999}" step="0.01" value="${Number(x.value)||0}"></div><button class="btn soft small" title="Remover desconto" data-remextra="${i}">×</button></div>`).join('');
+    }
+    function encodeQuotePayload(draft) {
+      const compact = {
+        v:1,
+        c:draft.client || '',
+        r:draft.ref || '',
+        d:draft.date || '',
+        s:draft.seller || '',
+        n:draft.notes || '',
+        o:draft.condition || 'none',
+        p:Number(draft.parts || 1),
+        e:[Number(draft.extra1||0), Number(draft.extra2||0), Number(draft.extraValue||0)],
+        m:draft.discountReason || '',
+        x:getExtras(draft),
+        i:(draft.items || []).map(item => [
+          item.productId || item.id || item.code || uid(),
+          item.code || '', item.name || '', Number(item.price||0), Number(item.qty||1),
+          item.accessory ? 1 : 0, item.kit ? 1 : 0,
+          item.ncm || '', item.icms || '', item.ipi || '', item.category || ''
+        ])
+      };
+      const raw = JSON.stringify(compact);
+      const encoded = btoa(unescape(encodeURIComponent(raw))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      return 'ORC1:' + encoded;
+    }
+
+    function decodeQuotePayload(text) {
+      const match = String(text || '').match(/ORC1:[A-Za-z0-9\-_]+/);
+      if (!match) throw new Error('Nenhum código ORC1 encontrado.');
+      let token = match[0].slice(5).replace(/-/g,'+').replace(/_/g,'/');
+      while (token.length % 4) token += '=';
+      const json = decodeURIComponent(escape(atob(token)));
+      const compact = JSON.parse(json);
+      if (!compact || compact.v !== 1 || !Array.isArray(compact.i)) throw new Error('Código inválido ou incompatível.');
+      return {
+        id: uid(),
+        client: compact.c || '', ref: compact.r || '', date: compact.d || today(), seller: compact.s || '', notes: compact.n || '',
+        condition: compact.o || 'none', parts: Number(compact.p || 1),
+        extra1: Number(compact.e?.[0] || 0), extra2: Number(compact.e?.[1] || 0), extraValue: Number(compact.e?.[2] || 0),
+        discountReason: compact.m || '', extras: Array.isArray(compact.x) ? compact.x : undefined, savedAt:null,
+        items: compact.i.map(row => {
+          const [productId, code, name, price, qty, accessory, kit, ncm, icms, ipi, category] = row;
+          return { productId, code, name, price:Number(price||0), qty:Number(qty||1), accessory:!!accessory, kit:!!kit, ncm:ncm||'', icms:icms||'', ipi:ipi||'', category:category || '' };
+        })
+      };
+    }
+
+    function loadDb() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.catalog) && Array.isArray(parsed.saved) && parsed.draft) {
+            parsed.catalog = parsed.catalog.map(normalizeProduct);
+            return parsed;
+          }
+        }
+      } catch (err) { console.warn(err); }
+      return { catalog: clone(BASE_CATALOG), saved: [], draft: baseDraft() };
+    }
+
+    let db = loadDb();
+    let draft = db.draft;
+
+    function persist(message='Rascunho salvo automaticamente neste dispositivo.') {
+      db.draft = draft;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+      $('saveStatus').textContent = message;
+    }
+
+    function syncForm() {
+      $('clientInput').value = draft.client || '';
+      $('refInput').value = draft.ref || '';
+      $('dateInput').value = draft.date || today();
+      $('sellerInput').value = draft.seller || '';
+      $('notesInput').value = draft.notes || '';
+      $('conditionSelect').value = draft.condition || 'none';
+      $('partsInput').value = Number(draft.parts || 12);
+      if(!Array.isArray(draft.extras)) draft.extras=getExtras(draft);
+      renderExtraRows();
+      $('discountReasonInput').value = draft.discountReason || '';
+    }
+
+    function readFormIntoDraft() {
+      draft.client = $('clientInput').value.trim();
+      draft.ref = $('refInput').value.trim();
+      draft.date = $('dateInput').value || today();
+      draft.seller = $('sellerInput').value.trim();
+      draft.notes = $('notesInput').value.trim();
+      draft.condition = $('conditionSelect').value;
+      draft.parts = Math.max(1, Math.min(60, Number($('partsInput').value || 1)));
+      if(!Array.isArray(draft.extras)) draft.extras=getExtras(draft);
+      draft.discountReason = $('discountReasonInput').value.trim();
+      persist();
+      renderAll();
+    }
+
+    function applyConditionDefaultParts() {
+      const v = $('conditionSelect').value;
+      if (v === '12x') $('partsInput').value = 12;
+      if (v === '5') $('partsInput').value = 4;
+      if (v === '60x') $('partsInput').value = 60;
+      if (v === '8') $('partsInput').value = 1;
+    }
+
+    function categories() {
+      const cats = ['Todas', ...new Set(db.catalog.map(p => p.category).sort((a,b) => a.localeCompare(b,'pt-BR')))];
+      $('categorySelect').innerHTML = cats.map(cat => `<option value="${esc(cat)}">${esc(cat)}</option>`).join('');
+    }
+
+    function calcState(state) {
+      const lines = (state.items || []).map((item, index) => {
+        const qty = Math.max(1, Number(item.qty || 1));
+        const unit = Math.max(0, Number(item.price || 0));
+        const lineTotal = qty * unit;
+        return { index, ...item, qty, unit, lineTotal };
+      });
+      const subtotal = lines.reduce((sum,line)=>sum+line.lineTotal,0);
+      const restrictedTotal = lines.filter(isRosqueadeira).reduce((sum,line)=>sum+line.lineTotal,0);
+      const eligibleSubtotal = subtotal-restrictedTotal;
+      const officialRate = state.condition==='5' ? .05 : state.condition==='8' ? .08 : 0;
+      const officialDiscount = eligibleSubtotal * officialRate;
+      let running = subtotal - officialDiscount;
+      const extras = getExtras(state);
+      for(const x of extras) {
+        if(x.type==='percent') running *= 1 - Math.min(100,x.value)/100;
+        else running = Math.max(0,running-x.value);
+      }
+      const total=Math.max(0,running);
+      const extraDiscount = Math.max(0,subtotal-officialDiscount-total);
+      const parts = Math.max(1, Number(state.parts || 1));
+      return {
+        lines, subtotal, restrictedTotal, eligibleSubtotal, officialDiscount, extraDiscount, total, parts,
+        installment: total / parts
+      };
+    }
+
+    function itemToHtml(line) {
+      const taxParts = [];
+      if (line.ncm) taxParts.push(`NCM ${esc(line.ncm)}`);
+      if (line.icms) taxParts.push(`ICMS ${esc(line.icms)}`);
+      if (line.ipi) taxParts.push(`IPI ${esc(line.ipi)}`);
+      return `
+        <tr class="item-row">
+          <td data-label="Item">
+            <div class="item-code">${esc(line.code || 'SEM CÓDIGO')}</div>
+            <div class="item-name">${esc(line.name || 'Item sem descrição')}</div>
+            <div class="item-tax">${taxParts.length ? taxParts.join(' · ') : 'Sem informação fiscal cadastrada'}${line.accessory ? ' · Acessório' : ''}</div>
+          </td>
+          <td data-label="Qtd."><input class="qty-input" type="number" min="1" step="1" data-qty="${line.index}" value="${line.qty}"></td>
+          <td data-label="Preço un."><input class="price-input money" type="number" min="0" step="0.01" data-price="${line.index}" value="${line.unit}"></td>
+          <td data-label="Total" class="money"><b>${formatMoney(line.lineTotal)}</b></td>
+          <td data-label="Ações">
+            <div style="display:grid; gap:8px;">
+              <label class="muted" style="display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" data-kit="${line.index}" ${line.kit ? 'checked' : ''}> Kit/acessório
+              </label>
+              <button class="btn soft small" data-remove="${line.index}">Remover</button>
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    function renderItems() {
+      const calc = calcState(draft);
+      $('itemCount').textContent = calc.lines.reduce((sum, line) => sum + line.qty, 0);
+      if (!calc.lines.length) {
+        $('itemsArea').innerHTML = '<div class="empty">Nenhum item no orçamento ainda. Adicione produtos do catálogo para começar.</div>';
+      } else {
+        $('itemsArea').innerHTML = `
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th style="width:46%;">Produto</th>
+                <th style="width:12%;">Qtd.</th>
+                <th style="width:18%;">Preço un.</th>
+                <th style="width:14%;">Total</th>
+                <th style="width:10%;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>${calc.lines.map(itemToHtml).join('')}</tbody>
+          </table>`;
+      }
+      $('subtotalValue').textContent = formatMoney(calc.subtotal);
+      $('officialValue').textContent = '− ' + formatMoney(calc.officialDiscount);
+      $('extraValueLabel').textContent = '− ' + formatMoney(calc.extraDiscount);
+      $('grandTotal').textContent = formatMoney(calc.total);
+      $('officialCard').style.display=calc.officialDiscount>0.001?'':'none';
+      $('extraCard').style.display=calc.extraDiscount>0.001?'':'none';
+      const conditionText = CONDITION_LABELS[draft.condition] || draft.condition;
+      let hint = `Condição selecionada: <b>${esc(conditionText)}</b>. `;
+      if (draft.parts > 1) hint += `Simulação em <b>${draft.parts}x de ${formatMoney(calc.installment)}</b>. `;
+      else hint += `Pagamento em <b>1x</b>. `;
+      if(calc.restrictedTotal>0 && draft.condition!=='none') hint += `<br><b>Rosqueadeiras fora da FENASAN:</b> ${formatMoney(calc.restrictedTotal)} sem desconto da feira. Parcelamento da feira não autorizado para elas; gere proposta separada para negociar o pagamento. `;
+      if(calc.extraDiscount>0) hint += `<br>Extras aplicados: ${esc(extraDescription(draft))}.`;
+      $('installmentHint').innerHTML = hint;
+      $('quoteCodeBox').textContent = draft.items.length ? encodeQuotePayload(draft) : 'ORC1:VAZIO';
+      $('statItems').textContent = String(calc.lines.length);
+      $('statTotal').textContent = formatMoney(calc.total);
+      $('statClient').textContent = draft.client || '—';
+      return calc;
+    }
+
+    function productCard(product) {
+      const chips = [];
+      chips.push(product.category);
+      if (product.ncm) chips.push('NCM ' + product.ncm);
+      if (product.icms) chips.push('ICMS ' + product.icms);
+      if (product.ipi) chips.push('IPI ' + product.ipi);
+      if (product.accessory) chips.push('Acessório');
+      return `
+        <div class="catalog-item">
+          <div>
+            <div class="item-code">${esc(product.code)}</div>
+            <div class="item-name">${esc(product.name)}</div>
+            <div class="muted" style="margin-top:5px;">${esc(product.source || '')}</div>
+            <div class="chips">${chips.map(ch => `<span class="chip">${esc(ch)}</span>`).join('')}</div>
+          </div>
+          <div style="display:grid; gap:12px; justify-items:end; align-content:start;">
+            <div class="catalog-price money">${formatMoney(product.price)}</div>
+            <button class="btn add-product-btn" data-add="${esc(product.id)}">+ Adicionar</button>
+          </div>
+        </div>`;
+    }
+
+    function renderCatalogPicker() {
+      const search = $('searchInput').value.trim().toLowerCase();
+      const category = $('categorySelect').value;
+      const list = db.catalog.filter(product => {
+        const hitCategory = category === 'Todas' || !category || product.category === category;
+        const str = [product.code, product.name, product.category, product.source].join(' ').toLowerCase();
+        const hitSearch = !search || str.includes(search);
+        return hitCategory && hitSearch;
+      });
+      $('catalogList').innerHTML = list.length ? list.map(productCard).join('') : '<div class="empty">Nenhum produto encontrado para este filtro.</div>';
+    }
+
+    const recentAdd = new Map();
+    let toastTimeout;
+    function itemAddedFeedback(product) {
+      const toast = $('addToast');
+      toast.textContent = '✓ ' + product.code + ' adicionado ao orçamento';
+      toast.classList.add('visible');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.classList.remove('visible'), 1700);
+      const button = [...document.querySelectorAll('[data-add]')].find(el => el.dataset.add === product.id);
+      if (button) {
+        button.textContent = '✓ Adicionado';
+        const card = button.closest('.catalog-item');
+        if (card) card.classList.add('just-added');
+        setTimeout(() => {if (button.isConnected) button.textContent = '+ Adicionar'; if(card?.isConnected)card.classList.remove('just-added');}, 1000);
+      }
+    }
+    function addItem(product) {
+      const found = draft.items.find(item => item.productId === product.id && Number(item.price) === Number(product.price));
+      if (found) found.qty += 1;
+      else draft.items.push({
+        productId: product.id, code: product.code, name: product.name, price: Number(product.price||0), qty:1,
+        accessory: !!product.accessory, kit:false, ncm:product.ncm||'', icms:product.icms||'', ipi:product.ipi||'', category:product.category||''
+      });
+      persist('Item adicionado ao orçamento.');
+      renderAll();
+      itemAddedFeedback(product);
+    }
+
+    function saveQuote() {
+      if (!draft.items.length) return alert('Adicione ao menos um item antes de salvar.');
+      const existingIndex = db.saved.findIndex(item => item.id === draft.id);
+      draft.savedAt = new Date().toISOString();
+      const snapshot = clone(draft);
+      if (existingIndex >= 0) db.saved[existingIndex] = snapshot;
+      else db.saved.unshift(snapshot);
+      persist('Orçamento salvo com sucesso.');
+      renderSaved();
+    }
+
+    function resetDraft(confirmNeeded=true) {
+      if (confirmNeeded && draft.items.length) {
+        const ok = confirm('Criar um novo orçamento? O rascunho atual ficará somente salvo se você tiver clicado em “Salvar”.');
+        if (!ok) return;
+      }
+      draft = baseDraft();
+      syncForm();
+      persist('Novo orçamento iniciado.');
+      renderAll();
+    }
+
+    function setDraft(newDraft, message='Orçamento carregado.') {
+      draft = clone(newDraft);
+      if (!draft.id) draft.id = uid();
+      syncForm();
+      persist(message);
+      renderAll();
+      showTab('quote');
+    }
+
+    function quoteSummary(state=draft) {
+      const calc = calcState(state);
+      const code = state.items.length ? encodeQuotePayload(state) : 'ORC1:VAZIO';
+      const lines = calc.lines.map(line => `• ${line.qty}x ${line.code} — ${line.name} | ${formatMoney(line.unit)} | total ${formatMoney(line.lineTotal)}`);
+      return [
+        'ORÇAMENTO ROTHENBERGER',
+        `Cliente: ${state.client || 'Não informado'}`,
+        `Referência: ${state.ref || '-'} | Data: ${state.date || '-'} | Responsável: ${state.seller || '-'}`,
+        '',
+        ...lines,
+        '',
+        `Subtotal: ${formatMoney(calc.subtotal)}`,
+        `Condição: ${CONDITION_LABELS[state.condition] || state.condition}`,
+        ...(calc.officialDiscount>0 ? [`Desconto oficial: ${formatMoney(calc.officialDiscount)}`] : []),
+        ...(calc.extraDiscount>0 ? [`Extras: ${extraDescription(state)} = ${formatMoney(calc.extraDiscount)}`] : []),
+        `TOTAL: ${formatMoney(calc.total)}`,
+        `Observações: ${state.notes || '-'}`,
+        '',
+        'CÓDIGO DO ORÇAMENTO:',
+        code
+      ].join('\n');
+    }
+
+    async function copyText(text, successMsg='Copiado!') {
+      try {
+        await navigator.clipboard.writeText(text);
+        alert(successMsg);
+      } catch (err) {
+        prompt('Copie o conteúdo abaixo:', text);
+      }
+    }
+
+    function renderSaved() {
+      const term = $('savedSearchInput').value.trim().toLowerCase();
+      const list = db.saved.filter(item => !term || JSON.stringify(item).toLowerCase().includes(term));
+      $('savedCount').textContent = String(db.saved.length);
+      $('savedList').innerHTML = list.length ? list.map(item => {
+        const calc = calcState(item);
+        return `
+          <div class="saved-card">
+            <div>
+              <div class="item-name">${esc(item.client || 'Cliente não informado')}</div>
+              <div class="muted">${esc(item.ref || 'Sem referência')} · ${esc(item.date || '')} · ${calc.lines.length} item(ns) · ${esc(CONDITION_LABELS[item.condition] || item.condition)}</div>
+              <div class="muted">Salvo em: ${item.savedAt ? new Date(item.savedAt).toLocaleString('pt-BR') : '—'}</div>
+              <div class="catalog-price" style="font-size:22px; text-align:left; margin-top:8px;">${formatMoney(calc.total)}</div>
+            </div>
+            <div class="top-actions" style="margin-top:0;">
+              <button class="btn small" data-load="${esc(item.id)}">Abrir</button>
+              <button class="btn dark small" data-pdf-saved="${esc(item.id)}">PDF</button>
+              <button class="btn soft small" data-duplicate="${esc(item.id)}">Duplicar</button>
+              <button class="btn outline small" data-delete="${esc(item.id)}">Excluir</button>
+            </div>
+          </div>`;
+      }).join('') : '<div class="empty">Nenhum orçamento salvo encontrado.</div>';
+    }
+
+    function renderCatalogManage() {
+      $('catalogManageList').innerHTML = db.catalog.map(product => `
+        <div class="saved-card">
+          <div>
+            <div class="item-code">${esc(product.code)}</div>
+            <div class="item-name">${esc(product.name)}</div>
+            <div class="muted">${esc(product.category)} · ${formatMoney(product.price)} · ${esc(product.source || '')}</div>
+            <div class="muted">${product.ncm ? 'NCM '+esc(product.ncm)+' · ' : ''}${product.icms ? 'ICMS '+esc(product.icms)+' · ' : ''}${product.ipi ? 'IPI '+esc(product.ipi) : ''}</div>
+          </div>
+          <div class="top-actions" style="margin-top:0;">
+            <button class="btn soft small" data-edit-product="${esc(product.id)}">Editar</button>
+            <button class="btn outline small" data-delete-product="${esc(product.id)}">Excluir</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function renderAll() {
+      renderCatalogPicker();
+      renderItems();
+      renderSaved();
+      renderCatalogManage();
+    }
+
+    function buildPrintHtml(state) {
+      const calc = calcState(state);
+      const code = state.items.length ? encodeQuotePayload(state) : 'ORC1:VAZIO';
+      const rows = calc.lines.map(line => {
+        const fiscal = [line.ncm ? `NCM ${line.ncm}` : '', line.icms ? `ICMS ${line.icms}` : '', line.ipi ? `IPI ${line.ipi}` : ''].filter(Boolean).join(' · ');
+        return `<tr>
+          <td><b>${esc(line.code)}</b><br>${esc(line.name)}${fiscal ? `<br><span style="font-size:10px;color:#666">${esc(fiscal)}</span>` : ''}</td>
+          <td>${line.qty}</td>
+          <td>${formatMoney(line.unit)}</td>
+          <td>${formatMoney(line.lineTotal)}</td>
+        </tr>`;
+      }).join('');
+      return `
+        <div class="print-header">
+          <div>
+            <img src="${LOGO_DATA}" alt="Rothenberger">
+            <div style="margin-top:8px;font-weight:800;">ORÇAMENTO / SIMULAÇÃO COMERCIAL</div>
+          </div>
+          <div style="text-align:right;">
+            <div><b>Condição:</b> ${esc(CONDITION_LABELS[state.condition] || state.condition)}</div>
+            <div><b>Data:</b> ${esc(state.date || '-')}</div>
+            <div><b>Ref.:</b> ${esc(state.ref || '-')}</div>
+          </div>
+        </div>
+        <table class="p-table">
+          <thead><tr><th>Produto</th><th>Qtd.</th><th>Preço un.</th><th>Total</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="p-total">
+          <div class="line"><span>Subtotal</span><b>${formatMoney(calc.subtotal)}</b></div>
+          ${calc.officialDiscount>0 ? `<div class="line"><span>Desconto oficial</span><b>− ${formatMoney(calc.officialDiscount)}</b></div>` : ''}
+          ${calc.extraDiscount>0 ? `<div class="line"><span>Descontos extras</span><b>− ${formatMoney(calc.extraDiscount)}</b></div>` : ''}
+          <div class="line"><span>Parcelamento</span><b>${state.parts > 1 ? state.parts + 'x de ' + formatMoney(calc.installment) : 'À vista / 1x'}</b></div>
+        </div>
+        <div class="p-grand">TOTAL ${formatMoney(calc.total)}</div>
+        ${calc.restrictedTotal>0 && state.condition!=='none' ? `<p style="font-size:11px"><b>Rosqueadeiras:</b> ${formatMoney(calc.restrictedTotal)} fora das condições FENASAN. Pagamento a negociar separadamente.</p>` : ''}
+        <div class="p-code"><b>CÓDIGO DO ORÇAMENTO:</b><br>${esc(code)}</div>
+        <div class="p-client">
+          <h3 style="margin-bottom:8px;">Dados do cliente e observações</h3>
+          <div class="p-client-grid">
+            <div class="print-box"><b>Cliente</b><br>${esc(state.client || 'Não informado')}</div>
+            <div class="print-box"><b>Responsável</b><br>${esc(state.seller || '-')}</div>
+            ${calc.extraDiscount>0 ? `<div class="print-box"><b>Descontos extras</b><br>${esc(extraDescription(state))}</div>` : ""}
+            ${calc.extraDiscount>0 && state.discountReason ? `<div class="print-box"><b>Motivo / autorização</b><br>${esc(state.discountReason)}</div>` : ""}
+          </div>
+          <div class="print-box" style="margin-top:12px;"><b>Observações</b><br>${esc(state.notes || '-')}</div>
+        </div>
+        <div class="p-foot">Condições comerciais sujeitas à confirmação, impostos, ST, frete, disponibilidade e aprovação quando aplicável. Documento emitido por simulador comercial.</div>`;
+    }
+
+    function renderPrintSheet(state) {
+      $('printSheet').innerHTML = buildPrintHtml(state);
+    }
+
+    function openPrintFallback(state) {
+      renderPrintSheet(state);
+      const win = window.open('', '_blank');
+      if (!win) { window.print(); return; }
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Orçamento Rothenberger</title><style>${document.querySelector('style').innerHTML}</style></head><body><div class="print-sheet">${buildPrintHtml(state)}</div></body></html>`);
+      win.document.close();
+      setTimeout(() => win.print(), 400);
+    }
+
+    async function generatePdf(state) {
+      const calc = calcState(state);
+      const code = state.items.length ? encodeQuotePayload(state) : 'ORC1:VAZIO';
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF || typeof jsPDF !== 'function') {
+        openPrintFallback(state);
+        return;
+      }
+      const doc = new jsPDF({orientation:'p', unit:'mm', format:'a4'});
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const rightX = pageWidth - 15;
+      doc.addImage(LOGO_DATA, 'PNG', 14, 13, 68, 68 * LOGO_ASPECT);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('ORÇAMENTO / SIMULAÇÃO COMERCIAL', 14, 34);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Condição: ' + (CONDITION_LABELS[state.condition] || state.condition), 14, 39);
+      doc.text('Data: ' + (state.date || '-'), 140, 33, {align:'left'});
+      doc.text('Ref.: ' + (state.ref || '-'), 140, 39, {align:'left'});
+      doc.setDrawColor(223,19,41);
+      doc.setLineWidth(1.2);
+      doc.line(14, 44, pageWidth - 14, 44);
+      const rows = calc.lines.map(line => [
+        `${line.code}
+${line.name}
+${[line.ncm ? 'NCM '+line.ncm : '', line.icms ? 'ICMS '+line.icms : '', line.ipi ? 'IPI '+line.ipi : ''].filter(Boolean).join(' · ') || 'Sem informação fiscal'}`,
+        String(line.qty),
+        formatMoney(line.unit),
+        formatMoney(line.lineTotal)
+      ]);
+      if (doc.autoTable) {
+        doc.autoTable({
+          startY: 49,
+          head:[['Produto', 'Qtd.', 'Preço un.', 'Total']],
+          body: rows,
+          theme:'grid',
+          styles:{font:'helvetica', fontSize:9, cellPadding:2.4, lineColor:[225,229,235]},
+          headStyles:{fillColor:[223,19,41], textColor:[255,255,255], fontStyle:'bold'},
+          columnStyles:{1:{halign:'center', cellWidth:18}, 2:{halign:'right', cellWidth:30}, 3:{halign:'right', cellWidth:30}},
+          margin:{left:14,right:14}
+        });
+      } else {
+        let y = 50;
+        rows.forEach(r => { doc.text(r[0].split('\n'), 14, y); y += 18; });
+      }
+      const afterTable = (doc.lastAutoTable?.finalY || 118) + 8;
+      if(afterTable>235){doc.addPage();}
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const summaryX = 115;
+      const labelX = summaryX;
+      const valueX = pageWidth - 14;
+      let y = afterTable;
+      const amountRows=[['Subtotal',formatMoney(calc.subtotal)]];
+      if(calc.officialDiscount>0) amountRows.push(['Desconto oficial', '- '+formatMoney(calc.officialDiscount)]);
+      if(calc.extraDiscount>0) amountRows.push(['Descontos extras', '- '+formatMoney(calc.extraDiscount)]);
+      amountRows.push(['Parcelamento',state.parts>1?`${state.parts}x de ${formatMoney(calc.installment)}`:'À vista / 1x']);
+      amountRows.forEach(([label,value])=> {doc.text(label,labelX,y);doc.text(value,valueX,y,{align:'right'});y+=6;});
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('TOTAL ' + formatMoney(calc.total), valueX, y + 4, {align:'right'});
+      y += 12;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Dados do cliente e observações', 14, y);
+      y += 6;
+      doc.setFont('helvetica', 'normal');
+      const clientLines = [
+        ...(calc.restrictedTotal>0 && state.condition!=='none' ? ['Rosqueadeiras fora da condicao FENASAN: pagamento a negociar separadamente.'] : []),
+        'Cliente: ' + (state.client || 'Não informado'),
+        'Responsável: ' + (state.seller || '-'),
+        ...(calc.extraDiscount>0 ? ['Descontos extras: '+extraDescription(state)] : []),
+        ...(calc.extraDiscount>0 && state.discountReason ? ['Motivo / autorização: '+state.discountReason] : []),
+        'Observações: ' + (state.notes || '-')
+      ];
+      if(y+clientLines.length*5>263){doc.addPage();y=18;}
+      doc.text(clientLines,14,y);
+      y+=clientLines.length*5+7;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Código do orçamento', 14, y);
+      y += 5;
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(8);
+      const codeLines = doc.splitTextToSize(code, pageWidth - 28);
+      if(y+codeLines.length*3.5>268){doc.addPage();y=18;}
+      doc.text(codeLines, 14, y);
+      y += codeLines.length * 3.5 + 6;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      const note = 'Condições sujeitas à confirmação, impostos, ST, frete, disponibilidade e aprovação quando aplicável.';
+      doc.text(doc.splitTextToSize(note, pageWidth - 28), 14, y);
+      const safeClient = (state.client || 'cliente').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g,'').toLowerCase() || 'cliente';
+      const safeRef = (state.ref || 'orcamento').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g,'').toLowerCase() || 'orcamento';
+      doc.save(`rothenberger-${safeClient}-${safeRef}.pdf`);
+    }
+
+    function promptProduct(product=null) {
+      const base = product ? clone(product) : normalizeProduct({});
+      const code = prompt('Código do produto:', base.code || '');
+      if (code === null) return;
+      const name = prompt('Descrição do produto:', base.name || '');
+      if (name === null) return;
+      const priceText = prompt('Preço do produto (R$):', String(base.price || 0).replace('.', ','));
+      if (priceText === null) return;
+      const price = Number(String(priceText).replace(',', '.'));
+      if (!Number.isFinite(price) || price < 0) return alert('Preço inválido.');
+      const category = prompt('Categoria:', base.category || 'Outros');
+      if (category === null) return;
+      const source = prompt('Origem/observação do preço:', base.source || 'Incluído manualmente');
+      if (source === null) return;
+      const ncm = prompt('NCM (opcional):', base.ncm || '');
+      if (ncm === null) return;
+      const icms = prompt('ICMS (opcional):', base.icms || '');
+      if (icms === null) return;
+      const ipi = prompt('IPI (opcional):', base.ipi || '');
+      if (ipi === null) return;
+      const accessory = confirm('Este item é acessório?\nOK = sim | Cancelar = não');
+      const normalized = normalizeProduct({
+        id: base.id || uid(), code: code.trim(), name: name.trim(), price,
+        category: category.trim() || 'Outros', source: source.trim() || 'Incluído manualmente',
+        ncm: ncm.trim(), icms: icms.trim(), ipi: ipi.trim(), accessory
+      });
+      if (!normalized.code || !normalized.name) return alert('Código e descrição são obrigatórios.');
+      const idx = db.catalog.findIndex(p => p.id === normalized.id);
+      if (idx >= 0) db.catalog[idx] = normalized; else db.catalog.unshift(normalized);
+      persist('Catálogo atualizado.');
+      categories();
+      renderAll();
+    }
+
+    function showTab(name) {
+      qa('.tab').forEach(tab => tab.classList.toggle('active', tab.dataset.tab === name));
+      qa('.view').forEach(view => view.classList.add('hidden'));
+      $('view-' + name).classList.remove('hidden');
+      if (name === 'saved') renderSaved();
+      if (name === 'catalog') renderCatalogManage();
+    }
+
+    document.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('button');
+      if (!btn) return;
+      const d = btn.dataset;
+      if (d.tab) return showTab(d.tab);
+      if (d.add) {
+        const product = db.catalog.find(p => p.id === d.add);
+        const now = Date.now();
+        if (now - (recentAdd.get(d.add) || 0) < 650) return;
+        recentAdd.set(d.add, now);
+        if (product) addItem(product);
+        return;
+      }
+      if (d.remove !== undefined) {
+        draft.items.splice(Number(d.remove), 1);
+        persist('Item removido.');
+        renderAll();
+        return;
+      }
+      if (d.load) {
+        const item = db.saved.find(s => s.id === d.load);
+        if (item) setDraft(item, 'Orçamento carregado.');
+        return;
+      }
+      if (d['pdfSaved']) {
+        const item = db.saved.find(s => s.id === d['pdfSaved']);
+        if (item) await generatePdf(item);
+        return;
+      }
+      if (d.duplicate) {
+        const item = db.saved.find(s => s.id === d.duplicate);
+        if (item) {
+          const copy = clone(item);
+          copy.id = uid(); copy.savedAt = null; copy.ref = (copy.ref || 'ORÇ') + ' - cópia';
+          setDraft(copy, 'Cópia carregada como novo rascunho.');
+        }
+        return;
+      }
+      if (d.delete) {
+        if (!confirm('Excluir este orçamento salvo?')) return;
+        db.saved = db.saved.filter(s => s.id !== d.delete);
+        persist('Orçamento excluído.');
+        renderSaved();
+        return;
+      }
+      if (d['editProduct']) {
+        const product = db.catalog.find(p => p.id === d['editProduct']);
+        if (product) promptProduct(product);
+        return;
+      }
+      if (d['deleteProduct']) {
+        if (!confirm('Excluir este produto do catálogo?')) return;
+        db.catalog = db.catalog.filter(p => p.id !== d['deleteProduct']);
+        persist('Produto excluído do catálogo.');
+        categories();
+        renderAll();
+        return;
+      }
+    });
+
+    $('itemsArea').addEventListener('input', (ev) => {
+      const target = ev.target;
+      if (target.dataset.qty !== undefined) {
+        const index = Number(target.dataset.qty);
+        draft.items[index].qty = Math.max(1, Math.floor(Number(target.value || 1)));
+        persist();
+        renderAll();
+      }
+      if (target.dataset.price !== undefined) {
+        const index = Number(target.dataset.price);
+        draft.items[index].price = Math.max(0, Number(target.value || 0));
+        persist();
+        renderAll();
+      }
+    });
+
+    $('itemsArea').addEventListener('change', (ev) => {
+      const target = ev.target;
+      if (target.dataset.kit !== undefined) {
+        draft.items[Number(target.dataset.kit)].kit = !!target.checked;
+        persist();
+        renderAll();
+      }
+    });
+
+    ['clientInput','refInput','dateInput','sellerInput','notesInput','partsInput','discountReasonInput'].forEach(id => $(id).addEventListener('input', readFormIntoDraft));
+    $('conditionSelect').addEventListener('change', () => { applyConditionDefaultParts(); readFormIntoDraft(); });
+    // Botão flutuante: condições ao percorrer catálogo; voltar ao topo na parte inferior.
+    const jumpButton = $('btnJumpConditions');
+    const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    let conditionSwitchY = 0;
+    let jumpIsUp = false;
+    function recalcJumpPosition() {
+      const panel = $('conditionsPanel');
+      const header = document.querySelector('.header');
+      const offset = (header ? header.getBoundingClientRect().height : 0) + 18;
+      conditionSwitchY = Math.max(0, window.scrollY + panel.getBoundingClientRect().top - offset);
+      refreshJumpButton();
+    }
+    function refreshJumpButton() {
+      const editorVisible = !$('view-quote').classList.contains('hidden');
+      jumpButton.classList.toggle('is-hidden', !editorVisible);
+      if (!editorVisible) return;
+      jumpIsUp = window.scrollY >= Math.max(24, conditionSwitchY - 20);
+      jumpButton.classList.toggle('is-up', jumpIsUp);
+      jumpButton.textContent = jumpIsUp ? '↑ Subir' : 'Condições ↓';
+      jumpButton.setAttribute('aria-label', jumpIsUp ? 'Subir ao topo' : 'Ir para condições e descontos');
+    }
+    jumpButton.addEventListener('click', () => {
+      if (jumpIsUp) {
+        window.scrollTo({ top:0, behavior:scrollBehavior() });
+      } else {
+        const header = document.querySelector('.header');
+        const offset = (header ? header.getBoundingClientRect().height : 0) + 12;
+        const target = $('conditionsPanel');
+        window.scrollTo({top:Math.max(0,window.scrollY + target.getBoundingClientRect().top - offset), behavior:scrollBehavior()});
+      }
+    });
+    window.addEventListener('scroll', refreshJumpButton, {passive:true});
+    window.addEventListener('resize', recalcJumpPosition);
+    // Atualiza o botão também ao trocar entre as abas.
+    document.querySelectorAll('[data-tab]').forEach(tab => tab.addEventListener('click', () => requestAnimationFrame(refreshJumpButton)));
+    window.addEventListener('load', recalcJumpPosition);
+    $('searchInput').addEventListener('input', renderCatalogPicker);
+    $('categorySelect').addEventListener('change', renderCatalogPicker);
+    $('savedSearchInput').addEventListener('input', renderSaved);
+
+    $('toggleExtras').addEventListener('click',()=>{
+      const zone=$('extrasZone'); const showing=zone.classList.toggle('hidden-extra')===false;
+      $('toggleExtras').setAttribute('aria-expanded',String(showing));
+      $('extrasIndicator').textContent=showing?'−':'+';
+    });
+    $('addExtra').addEventListener('click',()=>{
+      if(!Array.isArray(draft.extras)) draft.extras=getExtras(draft);
+      draft.extras.push({type:'percent',value:0});renderExtraRows();persist();
+    });
+    $('extraRows').addEventListener('change',ev=>{
+      const t=ev.target;
+      if(t.dataset.extratype!==undefined) draft.extras[Number(t.dataset.extratype)].type=t.value;
+      if(t.dataset.extraval!==undefined) draft.extras[Number(t.dataset.extraval)].value=Math.max(0,Number(t.value)||0);
+      renderExtraRows();persist();renderItems();
+    });
+    $('extraRows').addEventListener('click',ev=>{
+      const t=ev.target.closest('button');if(!t||t.dataset.remextra===undefined)return;
+      draft.extras.splice(Number(t.dataset.remextra),1);renderExtraRows();persist();renderItems();
+    });
+    $('btnSaveQuote').addEventListener('click', saveQuote);
+    $('btnPdf').addEventListener('click', async () => {
+      if (!draft.items.length) return alert('Adicione ao menos um item antes de gerar o PDF.');
+      await generatePdf(draft);
+    });
+    $('btnCopySummary').addEventListener('click', () => copyText(quoteSummary(), 'Resumo copiado.'));
+    $('btnCopyCode').addEventListener('click', () => copyText($('quoteCodeBox').textContent, 'Código do orçamento copiado.'));
+    $('btnClearItems').addEventListener('click', () => {
+      if (!draft.items.length) return;
+      if (!confirm('Remover todos os itens do orçamento atual?')) return;
+      draft.items = [];
+      persist('Itens removidos.');
+      renderAll();
+    });
+    $('btnNewQuote').addEventListener('click', () => resetDraft(true));
+    $('btnClearAll').addEventListener('click', () => {
+      if (!confirm('Limpar todos os campos, itens e descontos deste orçamento sem salvar? Orçamentos já salvos continuarão no histórico.')) return;
+      draft = baseDraft();
+      $('searchInput').value = '';
+      $('savedSearchInput').value = '';
+      categories();
+      syncForm();
+      $('extrasZone').classList.add('hidden-extra');
+      $('toggleExtras').setAttribute('aria-expanded','false');
+      $('extrasIndicator').textContent='+';
+      persist('Orçamento atual limpo. Nada foi salvo no histórico.');
+      renderAll();
+    });
+    $('btnCatalogAdd').addEventListener('click', () => promptProduct(null));
+    $('btnNewProduct').addEventListener('click', () => promptProduct(null));
+    $('btnCatalogReset').addEventListener('click', () => {
+      if (!confirm('Restaurar o catálogo base? Os produtos personalizados serão removidos.')) return;
+      db.catalog = clone(BASE_CATALOG);
+      persist('Catálogo base restaurado.');
+      categories();
+      renderAll();
+    });
+    $('btnRestoreCode').addEventListener('click', () => {
+      try {
+        const restored = decodeQuotePayload($('restoreInput').value);
+        setDraft(restored, 'Orçamento restaurado pelo código.');
+        $('restoreInput').value = '';
+      } catch (err) { alert(err.message); }
+    });
+    $('btnPasteRestore').addEventListener('click', async () => {
+      try {
+        const txt = await navigator.clipboard.readText();
+        $('restoreInput').value = txt;
+      } catch (err) { alert('Não foi possível ler a área de transferência.'); }
+    });
+    $('btnExportJson').addEventListener('click', () => {
+      persist();
+      const blob = new Blob([JSON.stringify({...db, exportedAt:new Date().toISOString()}, null, 2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'backup-rothenberger-orcamentos-' + today() + '.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    });
+    $('btnImportJson').addEventListener('click', () => $('jsonFileInput').click());
+    $('jsonFileInput').addEventListener('change', async (ev) => {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        if (!data || !Array.isArray(data.catalog) || !Array.isArray(data.saved) || !data.draft) throw new Error('Arquivo inválido.');
+        if (!confirm('Substituir os dados locais por este backup?')) return;
+        db = {
+          catalog: data.catalog.map(normalizeProduct),
+          saved: data.saved || [],
+          draft: data.draft || baseDraft()
+        };
+        draft = db.draft;
+        categories();
+        syncForm();
+        persist('Backup importado com sucesso.');
+        renderAll();
+      } catch (err) {
+        alert('Não foi possível importar: ' + err.message);
+      } finally { ev.target.value = ''; }
+    });
+
+    categories();
+    syncForm();
+    renderAll();
+    renderPrintSheet(draft);
+    requestAnimationFrame(recalcJumpPosition);
+  </script>
+</body>
+</html>
